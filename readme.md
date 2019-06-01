@@ -44,7 +44,7 @@ What do you need to "use" this sketch?
 * The Arduino IDE
   Well, it may work with the ESP IDF, but could not provide any help as i am not using that.
 
-* A separate ESP32-Boards running the demo app (or at least something sufficiently "compatible")
+* A separate ESP32-Boards with camera (only OV2640 was tried) running the demo app (or at least something sufficiently "compatible")
   Hardware: e.g. https://www.banggood.com/x-p-1418433.html, https://www.amazon.com/dp/B07MC472S9
   If you lost the original app: The demo ESP32 / Camera / CameraWebServer coming with the ESP32 board manager.
 
