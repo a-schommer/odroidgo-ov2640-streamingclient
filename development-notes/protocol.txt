@@ -1,0 +1,33 @@
+I had to reverse-engineer the data by a helper sketch "just" connecting and dumping its recievals.
+I did not try to understand the protocol/data format the ESP32/OV2640 board generates in depth.
+Obviously the used HTTP client (lib) tampers with the data being sent - at least one header line (the MIME separator) seems not to be recieved at all, but i also did not understand how the handling of the HTTP header *should* work.
+
+According to the sources, the camera module roughly sends:
+	multipart/x-mixed-replace;boundary=<PART_BOUNDARY>
+	Content-Type: image/jpeg\r\n
+	Content-Length: <CL>\r\n\r\n
+	<JPEG>
+	\r\n
+	--<PART_BOUNDARY>\r\n
+The first line just once, the rest repeated for each frame.
+The placeholders are:
+<PART_BOUNDARY>	a fixed text constat: 123456789000000000000987654321
+		(in the end i assume this is quite arbitrary; i do not know what happened if by chance the payload contained it)
+<JPEG>		The payload: One frame, encoded as an JPEG "file". The transfer is in plain bytes, not encoded (Base64 or whatever).
+<CL>		The length of <JPEG> (in Bytes, "encoded" as an ordinary ASCII decimal number).
+		As the <JPEG> itself is just binary data, this is required to recognize the end/length of <JPEG>.
+
+And this is what my dump sketch recieved instead:
+	32\r\n
+	Content-Type: image/jpeg\r\n
+	Content-Length: <CL>\r\n\r\n\r\n
+	<HEX-CL>\r\n
+	<JPEG>
+	\r\n
+	24\r\n\r\n
+	--<PART_BOUNDARY>\r\n\r\n
+This is repeated completely; there is no onetime header.
+I assume the missing first line (of the "output" i saw before) is somehow swallowed by the <HTTPClient.h> i use to handle HTTP itself.
+<HEX-CL> is the same value as <CL>, but as (ASCII "encoded") hexadecimal.
+(by the way: i also tried to "capture" the stream using Firefox - and that shows something else, most remarkably: it does not show the strange 32 and 24)
+I wonder about the extra "32" and "24" lines, the <HEX-CL> - and the extra \r\n at what otherwise matches the "output" before.

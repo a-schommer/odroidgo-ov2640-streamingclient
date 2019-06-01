@@ -1,0 +1,17 @@
+Originally, i had a performance of ~7fps - and the impression that *waiting* for the next frame to be recieved via network took a reasonable part of the time spent.
+I want to speed this up by making reading and displaying more parallel, more independent.
+First, this requires at least two buffers (instead of the previous, "only" one): one being processed to the displayed image, another being read from the network.
+(In the end, i am not sure if i will not use even more - to prevent pauses like "the next frame is already recieved, but the previous not yet finished to be displayed)
+As i do not want to copy between the two buffers, i either have to swap their pointers or code (like) a ring buffer.
+Swapping is tricky because when i make reading (from net) and displaying independent, where should that "swap" happen?
+
+Each single buffer can be in these states:
+	free		can be filled with data from the network, available to the net reader "process"
+	being read	just being filled with data from the network, being "processed" by the net reader "process"
+	filled		finished filling by the net reader "process", available for the display "process"
+	being drawn	just being displayed
+I need no sempahores because in each state it is obvious which process may access the buffer and change its state:
+	free		the net reader may grab it and may change the state to "being read"
+	being read	the net reader has exclusive access, may change its state to "filled"
+	filled		the display process may grab it and may change the state to "being drawn"
+	being drawn	this display process has exclusive access, may change its state to "free"
