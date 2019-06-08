@@ -15,3 +15,5 @@ I need no sempahores because in each state it is obvious which process may acces
 	being read	the net reader has exclusive access, may change its state to "filled"
 	filled		the display process may grab it and may change the state to "being drawn"
 	being drawn	this display process has exclusive access, may change its state to "free"
+
+In the end, there was quite little gain: i accelerated about 7 to about 8 fps... and the profiling shows there is little waiting but JPEG decoding takes much time.
